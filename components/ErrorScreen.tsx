@@ -1,6 +1,6 @@
 import { Fredoka } from "next/font/google"
-import HeartBackground from "../components/HeartBackground"
-import ClickHeartEffect from "@/components/ClickHeartEffect"
+import ChristmasBackground from "../components/ChristmasBackground"
+import ClickSnowEffect from "@/components/ClickSnowEffect"
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -14,8 +14,8 @@ interface ErrorScreenProps {
 export default function ErrorScreen({ message }: ErrorScreenProps) {
   return (
     <div className="min-h-svh bg-pink-100 flex flex-col items-center justify-center p-4 overflow-hidden">
-      <HeartBackground />
-      <ClickHeartEffect />
+      <ChristmasBackground />
+      <ClickSnowEffect />
       <div className="w-[calc(90vw+6px)] md:max-w-[756px] h-[500px] md:h-[506px] bg-[#d98f8f] rounded-lg shadow-xl flex flex-col items-center justify-center space-y-4 px-4">
         <h2 className={`${fredoka.className} text-[#ffffff] text-3xl md:text-4xl font-medium text-center`}>
           Error: {message}

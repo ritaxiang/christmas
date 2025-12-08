@@ -5,8 +5,8 @@ import Link from "next/link"
 import { Suspense } from "react" // Import Suspense
 import Image from "next/image"
 import { Fredoka, Poppins } from "next/font/google"
-import HeartBackground from "@/components/HeartBackground"
-import ClickHeartEffect from "@/components/ClickHeartEffect"
+import ChristmasBackground from "@/components/ChristmasBackground"
+import ClickSnowEffect from "@/components/ClickSnowEffect"
 import pcBg from "@/assets/mofu yay pc.png"
 import mobileBg from "@/assets/mofu yay mobile longer.png"
 import { MdHome } from "react-icons/md"
@@ -30,8 +30,8 @@ function SuccessPage() {
   return (
     <div className="h-svh relative bg-[#ffeded] overflow-hidden">
       <Toaster position="bottom-center" />
-      <HeartBackground />
-      <ClickHeartEffect />
+      <ChristmasBackground />
+      <ClickSnowEffect />
       <Link
         href="/"
         className="absolute top-5 left-5 z-20 text-[#d98f8f] hover:text-[#b35151] transition-colors"

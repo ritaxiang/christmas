@@ -31,8 +31,8 @@ import stamp2 from "../../assets/stamp 2.png"
 import stamp3 from "../../assets/stamp 3.png"
 import stampFrame from "../../assets/square stamp frame.png"
 import placeholder from "../../assets/placeholder2.jpg"
-import ClickHeartEffect from "@/components/ClickHeartEffect"
-import HeartBackground from "@/components/HeartBackground"
+import ClickSnowEffect from "@/components/ClickSnowEffect"
+import ChristmasBackground from "@/components/ChristmasBackground"
 import heic2any from "heic2any"
 import { logEvent } from "firebase/analytics"
 import { analytics } from "@/lib/firebase"
@@ -251,8 +251,8 @@ export default function ValentineForm() {
     <div
       className={`min-h-svh flex items-center justify-center bg-[#ffeded] ${poppins.className}`}
     >
-      <HeartBackground />
-      <ClickHeartEffect />
+      <ChristmasBackground />
+      <ClickSnowEffect />
       <Link
         href="/"
         className="absolute top-5 left-5 z-20 text-[#d98f8f] hover:text-[#b35151] transition-colors"

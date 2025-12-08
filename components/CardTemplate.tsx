@@ -3,11 +3,11 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { useMovingButton } from "../hooks/useMovingButton"
 import SuccessModal from "../components/SuccessModal"
-import HeartBackground from "../components/HeartBackground"
+import ChristmasBackground from "../components/ChristmasBackground"
 import FramedImage from "../components/FramedImage"
 import BrokenHeart from "../components/BrokenHeart"
 import NiceHeart from "../components/NiceHeart"
-import ClickHeartEffect from "@/components/ClickHeartEffect"
+import ClickSnowEffect from "@/components/ClickSnowEffect"
 import { Fredoka, Poppins, Nanum_Pen_Script } from "next/font/google"
 import { useIsMobile } from "@/hooks/use-mobile" // Add this import
 import { YesButton } from "../components/YesButton"
@@ -137,8 +137,8 @@ export default function ValentineProposal({
       className="min-h-svh min-w-[100svw] bg-[#ffeded] flex flex-col items-center justify-center p-4 overflow-hidden relative"
       onMouseMove={handleMouseMove}
     >
-      <ClickHeartEffect />
-      <HeartBackground />
+      <ClickSnowEffect />
+      <ChristmasBackground />
 
       <AnimatePresence>
         {!isEnvelopeOpen && (
