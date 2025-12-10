@@ -22,6 +22,8 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { MdHome } from "react-icons/md"
+import { FaTree } from "react-icons/fa"
+
 import { Fredoka, Poppins } from "next/font/google"
 import mofuFlower from "../../assets/mofu flower crop.png"
 import mofuHeart from "../../assets/mofu heart crop.png"
@@ -29,6 +31,9 @@ import imageCompression from "browser-image-compression"
 import stamp1 from "../../assets/stamp 1.png"
 import stamp2 from "../../assets/stamp 2.png"
 import stamp3 from "../../assets/stamp 3.png"
+import catStamp from "../../assets/cat-stamp.png"
+import snowmanStamp from "../../assets/snowman-stamp.png"
+import treeStamp from "../../assets/tree-stamp.png"
 import stampFrame from "../../assets/square stamp frame.png"
 import placeholder from "../../assets/placeholder2.jpg"
 import ClickSnowEffect from "@/components/ClickSnowEffect"
@@ -102,9 +107,9 @@ export default function ValentineForm() {
   const [loading, setLoading] = useState(false)
 
   const stamps = [
-    { id: "stamp1", src: stamp1, alt: "Cats with cake" },
-    { id: "stamp2", src: stamp2, alt: "Two cats with heart" },
-    { id: "stamp3", src: stamp3, alt: "Penguin cats" },
+    { id: "catStamp", src: catStamp, alt: "Christmas Cat" },
+    { id: "snowmanStamp", src: snowmanStamp, alt: "Snowman" },
+    { id: "treeStamp", src: treeStamp, alt: "Tree" },
   ]
 
   const router = useRouter()
@@ -249,13 +254,13 @@ export default function ValentineForm() {
 
   return (
     <div
-      className={`min-h-svh flex items-center justify-center bg-[#ffeded] ${poppins.className}`}
+      className={`min-h-svh flex items-center justify-center bg-[#253D2C] ${poppins.className}`}
     >
       <ChristmasBackground />
       <ClickSnowEffect />
       <Link
         href="/"
-        className="absolute top-5 left-5 z-20 text-[#d98f8f] hover:text-[#b35151] transition-colors"
+        className="absolute top-5 left-5 z-20 text-[#FFFAFA] hover:text-[#922b17] transition-colors"
       >
         <MdHome className="w-[4svh] h-[4svh] md:w-[40px] md:h-[40px]" />
       </Link>
@@ -264,7 +269,7 @@ export default function ValentineForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex flex-col md:flex-row gap-6">
               {/* First Container - Names and Message */}
-              <div className="flex-1 bg-[#E5A4A4] rounded-xl p-6 space-y-4">
+              <div className="flex-1 bg-[#761603] rounded-xl p-6 space-y-4">
                 <FormField
                   control={form.control}
                   name="senderName"
@@ -272,7 +277,7 @@ export default function ValentineForm() {
                     <FormItem>
                       <FormControl>
                         <Input
-                          placeholder="Your Name"
+                          placeholder="From: "
                           {...field}
                           className="bg-white rounded-xl"
                         />
@@ -289,7 +294,7 @@ export default function ValentineForm() {
                     <FormItem>
                       <FormControl>
                         <Input
-                          placeholder="Valentine's Name"
+                          placeholder="To: "
                           {...field}
                           className="bg-white rounded-xl"
                         />
@@ -343,7 +348,7 @@ export default function ValentineForm() {
                                   ${
                                     selectedStamp === stamp.id
                                       ? "bg-white"
-                                      : "bg-[#F8E3E3] hover:drop-shadow-lg"
+                                      : "bg-[#f9f4e3] hover:drop-shadow-lg"
                                   }
                                 `}
                               >
@@ -377,7 +382,7 @@ export default function ValentineForm() {
               </div>
 
               {/* Second Container - Photos and Captions */}
-              <div className="flex-1 bg-[#E5A4A4] rounded-xl p-6">
+              <div className="flex-1 bg-[#761603] rounded-xl p-6">
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -683,10 +688,10 @@ export default function ValentineForm() {
             <div className="flex justify-center pb-6 md:pb-0">
               <Button
                 type="submit"
-                className={`bg-[#E5A4A4] hover:bg-[#d98f8f] text-white text-xl px-8 py-2 rounded-3xl h-[60px]  ${fredoka.className}`}
+                className={`bg-[#761603] hover:bg-[#922b17] text-white text-xl px-8 py-2 rounded-3xl h-[60px]  ${fredoka.className}`}
                 disabled={loading}
               >
-                {loading ? "Submitting..." : "Generate Website"}
+                {loading ? "Submitting..." : "Generate Card"}
               </Button>
             </div>
           </form>

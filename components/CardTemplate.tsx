@@ -14,6 +14,9 @@ import { YesButton } from "../components/YesButton"
 import stamp1 from "@/assets/stamp 1.png"
 import stamp2 from "@/assets/stamp 2.png"
 import stamp3 from "@/assets/stamp 3.png"
+import catStamp from "@/assets/cat-stamp.png"
+import snowmanStamp from "@/assets/snowman-stamp.png"
+import treeStamp from "@/assets/tree-stamp.png"
 import stampFrame from "@/assets/square stamp frame.png"
 import Image from "next/image"
 
@@ -69,7 +72,7 @@ export default function ValentineProposal({
   valentineName,
   senderName,
   message,
-  selectedStamp = "stamp1",
+  selectedStamp = "catStamp",
 }: ValentineProposalProps) {
   const [showModal, setShowModal] = useState(false)
   const [noClicked, setNoClicked] = useState(false)
@@ -161,11 +164,11 @@ export default function ValentineProposal({
               />
               <Image
                 src={
-                  selectedStamp === "stamp2"
-                    ? stamp2
-                    : selectedStamp === "stamp3"
-                    ? stamp3
-                    : stamp1
+                  selectedStamp === "snowmanStamp"
+                    ? snowmanStamp
+                    : selectedStamp === "treeStamp"
+                    ? treeStamp
+                    : catStamp
                 }
                 alt="Selected Stamp"
                 className="w-full h-full object-contain relative z-10"

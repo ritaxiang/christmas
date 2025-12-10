@@ -3,6 +3,7 @@ import { useState } from "react"
 import ImageModal from "./ImageModal"
 import { Fredoka, Poppins } from "next/font/google"
 import stamp1 from "@/assets/stamp 1.png"
+import catStamp from "@/assets/cat-stamp.png"
 
 interface FramedImageProps {
   src: string
@@ -44,7 +45,7 @@ export default function FramedImage({
           <div className="relative aspect-square w-full transform">
             {src == "fallbackStamp" ? (
               <Image
-                src={stamp1}
+                src={catStamp}
                 alt={alt}
                 fill
                 className="rounded-lg object-cover"
