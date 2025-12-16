@@ -38,10 +38,10 @@ import ChristmasBackground from "@/components/ChristmasBackground";
 import heic2any from "heic2any";
 import CardSelectionModal, {
   CardTemplate,
-} from "@/components/CardSelectionModal"
+} from "@/components/CardSelectionModal";
 import CoverSelectionModal, {
   CoverTemplate,
-} from "@/components/CoverSelectionModal"
+} from "@/components/CoverSelectionModal";
 
 import { logEvent } from "firebase/analytics";
 import { analytics } from "@/lib/firebase";
@@ -217,33 +217,33 @@ export default function ValentineForm() {
           const compressedImage = await handleImageCompression(
             values.image1,
             compressionOptions
-          )
+          );
           if (compressedImage) {
             image1URL = await uploadImage(
               compressedImage,
               `valentines/${docRef.id}/image1-${Date.now()}`
-            )
+            );
           }
         } else if (typeof values.image1 === "string") {
           // template chosen via modal
-          image1URL = values.image1
+          image1URL = values.image1;
         }
       }
-      
+
       if (values.image2 && values.caption2) {
         if (values.image2 instanceof File) {
           const compressedImage = await handleImageCompression(
             values.image2,
             compressionOptions
-          )
+          );
           if (compressedImage) {
             image2URL = await uploadImage(
               compressedImage,
               `valentines/${docRef.id}/image2-${Date.now()}`
-            )
+            );
           }
         } else if (typeof values.image2 === "string") {
-          image2URL = values.image2
+          image2URL = values.image2;
         }
       }
 
@@ -271,8 +271,6 @@ export default function ValentineForm() {
       setLoading(false);
     }
   }
-
-  
 
   return (
     <div
@@ -405,14 +403,14 @@ export default function ValentineForm() {
 
               {/* Second Container - Photos and Captions */}
               <div className="flex-1 bg-[#761603] rounded-xl p-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-6">
                   <FormField
                     control={form.control}
                     name="image1"
-                    render={({ field: { onChange, ...field } }) => (
-                      <div className="bg-white p-3 pb-0 rounded-lg shadow-md w-full h-full grid grid-rows-[auto_1fr_auto] gap-2">
-                        <FormItem className="bg-[#D9D9D9] w-full aspect-square rounded-md relative overflow-hidden">
-                          <div className="w-full h-full aspect-square relative">
+                    render={() => (
+                      <div className="bg-white p-4 rounded-lg shadow-md w-full">
+                        <FormItem className="bg-[#D9D9D9] w-full aspect-video rounded-md relative overflow-hidden">
+                          <div className="w-full h-full relative">
                             <Image
                               src={placeholder}
                               alt="Card Background"
@@ -420,29 +418,28 @@ export default function ValentineForm() {
                               className="object-cover"
                             />
 
-                            {/* Clickable overlay that opens the modal */}
                             <button
                               type="button"
                               onClick={() => setIsCardModalOpen(true)}
-                              className="absolute inset-0 z-10 flex flex-col items-center justify-center"
+                              className="absolute inset-0 z-10 flex items-center justify-center"
                             >
                               {preview1 ? (
                                 <img
                                   src={preview1}
                                   alt="Selected card"
-                                  className="h-full w-full object-cover rounded-md"
+                                  className="h-full w-full object-cover"
                                 />
-                              ) : (
-                                <span className="text-sm text-gray-600"></span>
-                              )}
+                              ) : null}
                             </button>
                           </div>
                           <FormMessage />
                         </FormItem>
-                        <div className="flex items-center justify-center">
+
+                        <div className="mt-3 flex items-center justify-center">
                           <span className="text-gray-400 text-sm text-center">
-                            Choose <br className="md:hidden" />
-                            Card Template
+                            {preview1
+                              ? "Click to change!!"
+                              : "Choose Card Template"}
                           </span>
                         </div>
                       </div>
@@ -508,10 +505,10 @@ export default function ValentineForm() {
                   <FormField
                     control={form.control}
                     name="image2"
-                    render={({ field: { onChange, ...field } }) => (
-                      <div className="bg-white p-3 pb-0 rounded-lg shadow-md w-full h-full grid grid-rows-[auto_1fr_auto] gap-2">
-                        <FormItem className="bg-[#D9D9D9] w-full aspect-square rounded-md relative overflow-hidden">
-                          <div className="w-full h-full aspect-square relative">
+                    render={() => (
+                      <div className="bg-white p-4 rounded-lg shadow-md w-full">
+                        <FormItem className="bg-[#D9D9D9] w-full aspect-video rounded-md relative overflow-hidden">
+                          <div className="w-full h-full relative">
                             <Image
                               src={placeholder}
                               alt="Envelope Background"
@@ -522,25 +519,25 @@ export default function ValentineForm() {
                             <button
                               type="button"
                               onClick={() => setIsCoverModalOpen(true)}
-                              className="absolute inset-0 z-10 flex flex-col items-center justify-center"
+                              className="absolute inset-0 z-10 flex items-center justify-center"
                             >
                               {preview2 ? (
                                 <img
                                   src={preview2}
                                   alt="Selected cover"
-                                  className="h-full w-full object-cover rounded-md"
+                                  className="h-full w-full object-cover"
                                 />
-                              ) : (
-                                <span className="text-sm text-gray-600"></span>
-                              )}
+                              ) : null}
                             </button>
                           </div>
                           <FormMessage />
                         </FormItem>
-                        <div className="flex items-center justify-center">
+
+                        <div className="mt-3 flex items-center justify-center">
                           <span className="text-gray-400 text-sm text-center">
-                            Choose Envelope <br className="md:hidden" />
-                            Cover
+                            {preview2
+                              ? "Click to change!!"
+                              : "Choose Envelope Cover"}
                           </span>
                         </div>
                       </div>
@@ -563,37 +560,35 @@ export default function ValentineForm() {
         </Form>
       </div>
       <CardSelectionModal
-  isOpen={isCardModalOpen}
-  onClose={() => setIsCardModalOpen(false)}
-  selectedId={selectedCardId}
-  onSelect={(template: CardTemplate) => {
-    setSelectedCardId(template.id)
+        isOpen={isCardModalOpen}
+        onClose={() => setIsCardModalOpen(false)}
+        selectedId={selectedCardId}
+        onSelect={(template: CardTemplate) => {
+          setSelectedCardId(template.id);
 
-    const src =
-      typeof template.src === "string" ? template.src : template.src.src
+          const src =
+            typeof template.src === "string" ? template.src : template.src.src;
 
-    setPreview1(src)
-    // store the URL/path in the form so we can save it
-    form.setValue("image1", src as any, { shouldValidate: true })
-  }}
-/>
+          setPreview1(src);
+          // store the URL/path in the form so we can save it
+          form.setValue("image1", src as any, { shouldValidate: true });
+        }}
+      />
 
-<CoverSelectionModal
-  isOpen={isCoverModalOpen}
-  onClose={() => setIsCoverModalOpen(false)}
-  selectedId={selectedCoverId}
-  onSelect={(template: CoverTemplate) => {
-    setSelectedCoverId(template.id)
+      <CoverSelectionModal
+        isOpen={isCoverModalOpen}
+        onClose={() => setIsCoverModalOpen(false)}
+        selectedId={selectedCoverId}
+        onSelect={(template: CoverTemplate) => {
+          setSelectedCoverId(template.id);
 
-    const src =
-      typeof template.src === "string" ? template.src : template.src.src
+          const src =
+            typeof template.src === "string" ? template.src : template.src.src;
 
-    setPreview2(src)
-    form.setValue("image2", src as any, { shouldValidate: true })
-  }}
-/>
-
-
+          setPreview2(src);
+          form.setValue("image2", src as any, { shouldValidate: true });
+        }}
+      />
     </div>
   );
 }
