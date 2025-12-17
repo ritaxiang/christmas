@@ -1,82 +1,78 @@
 // app/card/[id]/page.tsx
-"use client";
+"use client"
 
-import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { analytics, db } from '@/lib/firebase'; // Your Firebase initialization
-import { doc, getDoc } from 'firebase/firestore'; // Import getFirestore
-import ValentineProposal from "@/components/CardTemplate";
+import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { analytics, db } from "@/lib/firebase"
+import { doc, getDoc } from "firebase/firestore"
+import { logEvent } from "firebase/analytics"
+
 import LoadingScreen from "@/components/LoadingScreen"
 import ErrorScreen from "@/components/ErrorScreen"
-import { logEvent } from 'firebase/analytics';
+import ChristmasCardTemplate from "@/components/ChristmasCardTemplate" // <- create this
+
+type ChristmasCardDoc = {
+  senderName: string
+  recipientName: string
+  message: string
+  selectedStamp: string
+  selectedCardTemplateId: string
+  selectedCoverTemplateId: string
+}
 
 export default function CardPage() {
-  const params = useParams();
-  const id = Array.isArray(params.id) ? params.id[0] : params.id; // Ensure id is a string
-  const [cardData, setCardData] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const params = useParams()
+  const id = Array.isArray(params?.id) ? params.id[0] : (params?.id as string)
+
+  const [cardData, setCardData] = useState<ChristmasCardDoc | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!id) return
+
     async function fetchData() {
-      setLoading(true); // Set loading to true before fetching
+      setLoading(true)
+      setError(null)
 
       try {
-        const docRef = doc(db, "valentineMessages", id); // Reference to the document
-        const docSnap = await getDoc(docRef); // Fetch the document
+        // ✅ IMPORTANT: christmasCards, not valentineMessages
+        const docRef = doc(db, "christmasCards", id)
+        const docSnap = await getDoc(docRef)
 
-        if (docSnap.exists()) {
-          setCardData(docSnap.data()); // Set the card data
-        } else {
-          setError("Card not found!"); // Set an error message if not found
+        if (!docSnap.exists()) {
+          setError("Card not found!")
+          return
+        }
+
+        setCardData(docSnap.data() as ChristmasCardDoc)
+
+        if (analytics) {
+          logEvent(analytics, "christmas_card_viewed", { id })
         }
       } catch (err) {
-        setError("Error fetching card"); // Set error message
+        console.error(err)
+        setError("Error fetching card")
       } finally {
-        if (analytics){
-          logEvent(analytics, "custom_card_viewed", { id: id})
-        }
-        setLoading(false); // Set loading to false after fetch attempt
+        setLoading(false)
       }
     }
 
-    if (id) { // Only fetch if id exists (prevents error on initial render)
-      fetchData();
-    }
-  }, [id]); // Re-run effect if 'id' changes
+    fetchData()
+  }, [id])
 
-  if (loading) {
-    return <LoadingScreen />
-  }
+  if (loading) return <LoadingScreen />
+  if (error) return <ErrorScreen message={error} />
+  if (!cardData) return <ErrorScreen message="Card not found!" />
 
-  if (error) {
-    return <ErrorScreen message={error} />
-  }
-
-  if (!cardData) { // Data could be null if there was an issue or the doc doesn't exist
-    return <ErrorScreen message={error} />
-  }
-
-  // Now you have the card data, display it!
   return (
-    <ValentineProposal
-      imgUrl={cardData.image1URL || "/fallback-image.jpg"}
-      imgCaption={cardData.caption1 || ""}
-      imgUrl2={cardData.image2URL || "/fallback-image.jpg"}
-      imgCaption2={cardData.caption2 || ""}
-      valentineName={cardData.recipientName}
+    <ChristmasCardTemplate
       senderName={cardData.senderName}
+      recipientName={cardData.recipientName}
       message={cardData.message}
-      selectedStamp={cardData.selectedStamp || ""}
+      selectedStamp={cardData.selectedStamp}
+      selectedCardTemplateId={cardData.selectedCardTemplateId}
+      selectedCoverTemplateId={cardData.selectedCoverTemplateId}
     />
-    // <div>
-    //   <h1>Your Valentine Card</h1>
-    //   <p>Sender: {cardData.senderName}</p>
-    //   <p>Recipient: {cardData.recipientName}</p>
-    //   <p>Message: {cardData.message}</p>
-    //   {/* ... other card details ... */}
-    //   {cardData.image1URL && <img src={cardData.image1URL} alt="Image 1" />}
-    //   {cardData.image2URL && <img src={cardData.image2URL} alt="Image 2" />}
-    // </div>
-  );
+  )
 }

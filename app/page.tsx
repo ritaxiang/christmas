@@ -90,7 +90,7 @@ export default function Page() {
       <Image
         src={bgMobile}
         alt="Background"
-        className="md:hidden absolute bottom-[-8%] right-0 w-full h-auto object-contain z-0"
+        className="md:hidden absolute bottom-0 right-0 w-full h-auto object-contain z-0"
         priority
       />
     </div>
