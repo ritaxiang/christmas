@@ -1,4 +1,4 @@
-# 💘 valentineproposal.com 💘
+# happyholidaysss.com 
 
 A customizable digital Valentine’s Day card for when a DM just isn’t enough.  
 Built with ❤️ by [Brian Zhang](https://github.com/brianzhangdev), [Patrick Huang](https://github.com/patrickxhuang), and [Jordan Kok](https://github.com/Ee-Hsin).
