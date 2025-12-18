@@ -3,7 +3,7 @@ import "./globals.css"
 import Analytics from "@/components/Analytics"
 
 export const metadata: Metadata = {
-  title: "Happy Holidays",
+  title: "Holiday Card",
   description: "Merry Christmas and Happy New Year!",
   icons: {
     icon: "/favicon.ico",
