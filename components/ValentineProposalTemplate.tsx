@@ -3,13 +3,13 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { useMovingButton } from "../hooks/useMovingButton"
 import SuccessModal from "../components/SuccessModal"
-import HeartBackground from "../components/HeartBackground"
+import ChristmasBackground from "../components/ChristmasBackground"
 import FramedImage from "../components/FramedImage"
 import BrokenHeart from "../components/BrokenHeart"
 import NiceHeart from "../components/NiceHeart"
 
 interface ValentineProposalProps {
-    imgUrl: string
+    imgUrl: string  
     imgCaption: string
     imgUrl2: string
     imgCaption2: string
@@ -36,7 +36,7 @@ export default function ValentineProposal({imgUrl, imgCaption, imgUrl2, imgCapti
         className="min-h-screen bg-pink-100 flex flex-col items-center justify-center p-4 overflow-hidden relative"
         onMouseMove={handleMouseMove}
       >
-        <HeartBackground />
+        <ChristmasBackground />
         <FramedImage
           src={imgUrl}
           alt="Memory 1"

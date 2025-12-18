@@ -3,17 +3,20 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { useMovingButton } from "../hooks/useMovingButton"
 import SuccessModal from "../components/SuccessModal"
-import HeartBackground from "../components/HeartBackground"
+import ChristmasBackground from "../components/ChristmasBackground"
 import FramedImage from "../components/FramedImage"
 import BrokenHeart from "../components/BrokenHeart"
 import NiceHeart from "../components/NiceHeart"
-import ClickHeartEffect from "@/components/ClickHeartEffect"
+import ClickSnowEffect from "@/components/ClickSnowEffect"
 import { Fredoka, Poppins, Nanum_Pen_Script } from "next/font/google"
 import { useIsMobile } from "@/hooks/use-mobile" // Add this import
 import { YesButton } from "../components/YesButton"
 import stamp1 from "@/assets/stamp 1.png"
 import stamp2 from "@/assets/stamp 2.png"
 import stamp3 from "@/assets/stamp 3.png"
+import catStamp from "@/assets/cat-stamp.png"
+import snowmanStamp from "@/assets/snowman-stamp.png"
+import treeStamp from "@/assets/tree-stamp.png"
 import stampFrame from "@/assets/square stamp frame.png"
 import Image from "next/image"
 
@@ -69,7 +72,7 @@ export default function ValentineProposal({
   valentineName,
   senderName,
   message,
-  selectedStamp = "stamp1",
+  selectedStamp = "catStamp",
 }: ValentineProposalProps) {
   const [showModal, setShowModal] = useState(false)
   const [noClicked, setNoClicked] = useState(false)
@@ -137,8 +140,8 @@ export default function ValentineProposal({
       className="min-h-svh min-w-[100svw] bg-[#ffeded] flex flex-col items-center justify-center p-4 overflow-hidden relative"
       onMouseMove={handleMouseMove}
     >
-      <ClickHeartEffect />
-      <HeartBackground />
+      <ClickSnowEffect />
+      <ChristmasBackground />
 
       <AnimatePresence>
         {!isEnvelopeOpen && (
@@ -161,11 +164,11 @@ export default function ValentineProposal({
               />
               <Image
                 src={
-                  selectedStamp === "stamp2"
-                    ? stamp2
-                    : selectedStamp === "stamp3"
-                    ? stamp3
-                    : stamp1
+                  selectedStamp === "snowmanStamp"
+                    ? snowmanStamp
+                    : selectedStamp === "treeStamp"
+                    ? treeStamp
+                    : catStamp
                 }
                 alt="Selected Stamp"
                 className="w-full h-full object-contain relative z-10"

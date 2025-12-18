@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { useMovingButton } from "../hooks/useMovingButton"
 import SuccessModal from "../components/SuccessModal"
-import HeartBackground from "../components/HeartBackground"
+import ChristmasBackground from "../components/ChristmasBackground"
 import FramedImage from "../components/FramedImage"
 import BrokenHeart from "../components/BrokenHeart"
 import NiceHeart from "../components/NiceHeart"
@@ -138,7 +138,7 @@ export default function ValentineProposal({
       onMouseMove={handleMouseMove}
     >
       {/* <ClickHeartEffect /> */}
-      <HeartBackground />
+      <ChristmasBackground />
 
       <AnimatePresence>
         {!isEnvelopeOpen && (

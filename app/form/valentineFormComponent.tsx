@@ -1,87 +1,66 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { db, storage } from "@/lib/firebase"
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { collection, addDoc, updateDoc } from "firebase/firestore"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import { MdHome } from "react-icons/md"
-import { Fredoka, Poppins } from "next/font/google"
-import mofuFlower from "../../assets/mofu flower crop.png"
-import mofuHeart from "../../assets/mofu heart crop.png"
-import imageCompression from "browser-image-compression"
-import stamp1 from "../../assets/stamp 1.png"
-import stamp2 from "../../assets/stamp 2.png"
-import stamp3 from "../../assets/stamp 3.png"
-import stampFrame from "../../assets/square stamp frame.png"
-import placeholder from "../../assets/placeholder2.jpg"
-import ClickHeartEffect from "@/components/ClickHeartEffect"
-import HeartBackground from "@/components/HeartBackground"
-import heic2any from "heic2any"
-import { logEvent } from "firebase/analytics"
-import { analytics } from "@/lib/firebase"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { db } from "@/lib/firebase";
+import { collection, addDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { MdHome } from "react-icons/md";
+
+import { Fredoka, Poppins } from "next/font/google";
+import catStamp from "../../assets/cat-stamp.png";
+import snowmanStamp from "../../assets/snowman-stamp.png";
+import treeStamp from "../../assets/tree-stamp.png";
+import stampFrame from "../../assets/square stamp frame.png";
+import placeholder from "../../assets/placeholder2.jpg";
+
+import ClickSnowEffect from "@/components/ClickSnowEffect";
+import ChristmasBackground from "@/components/ChristmasBackground";
+
+import CardSelectionModal, {
+  CardTemplate,
+} from "@/components/CardSelectionModal";
+import CoverSelectionModal, {
+  CoverTemplate,
+} from "@/components/CoverSelectionModal";
+
+import { logEvent } from "firebase/analytics";
+import { analytics } from "@/lib/firebase";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-})
+});
 
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400"],
-})
+});
 
-const formSchema = z
-  .object({
-    senderName: z.string().min(1, "Your name is required"),
-    recipientName: z.string().min(1, "Valentine's name is required"),
-    message: z.string().min(1, "Message is required"),
-    image1: z.custom<File>().optional(),
-    caption1: z.string().optional(),
-    image2: z.custom<File>().optional(),
-    caption2: z.string().optional(),
-    selectedStamp: z.string().min(1, "Please select a stamp"),
-  })
-  .refine(
-    (data) => (data.image1 ? (data.caption1 ?? "").trim().length > 0 : true),
-    {
-      message: "You forgot to write a caption for your first image!",
-      path: ["caption1"],
-    }
-  )
-  .refine((data) => (data.caption1 ? !!data.image1 : true), {
-    message:
-      "You wrote a caption for your first image but forgot to upload the image!",
-    path: ["image1"],
-  })
-  .refine(
-    (data) => (data.image2 ? (data.caption2 ?? "").trim().length > 0 : true),
-    {
-      message: "You forgot to write a caption for your second image!",
-      path: ["caption2"],
-    }
-  )
-  .refine((data) => (data.caption2 ? !!data.image2 : true), {
-    message:
-      "You wrote a caption for your second image but forgot to upload the image!",
-    path: ["image2"],
-  })
+const formSchema = z.object({
+  senderName: z.string().min(1, "Your name is required"),
+  recipientName: z.string().min(1, "Recipient name is required"),
+  message: z.string().min(1, "Message is required"),
+
+  selectedCardTemplateId: z.string().min(1, "Please choose a card template"),
+  selectedCoverTemplateId: z.string().min(1, "Please choose an envelope cover"),
+
+  selectedStamp: z.string().min(1, "Please select a stamp"),
+});
 
 export default function ValentineForm() {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -90,181 +69,107 @@ export default function ValentineForm() {
       senderName: "",
       recipientName: "",
       message: "",
-      caption1: "",
-      caption2: "",
+      selectedCardTemplateId: "",
+      selectedCoverTemplateId: "",
       selectedStamp: "",
     },
-  })
+  });
 
-  const [selectedStamp, setSelectedStamp] = useState<string | null>(null)
-  const [preview1, setPreview1] = useState<string | null>(null)
-  const [preview2, setPreview2] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [selectedStamp, setSelectedStamp] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+  const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
+
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [selectedCoverId, setSelectedCoverId] = useState<string | null>(null);
+
+  // previews are just for UI display on the form
+  const [previewCardSrc, setPreviewCardSrc] = useState<string | null>(null);
+  const [previewCoverSrc, setPreviewCoverSrc] = useState<string | null>(null);
 
   const stamps = [
-    { id: "stamp1", src: stamp1, alt: "Cats with cake" },
-    { id: "stamp2", src: stamp2, alt: "Two cats with heart" },
-    { id: "stamp3", src: stamp3, alt: "Penguin cats" },
-  ]
+    { id: "catStamp", src: catStamp, alt: "Christmas Cat" },
+    { id: "snowmanStamp", src: snowmanStamp, alt: "Snowman" },
+    { id: "treeStamp", src: treeStamp, alt: "Tree" },
+  ];
 
-  const router = useRouter()
-
-  async function uploadImage(file: File | undefined, path: string) {
-    if (!file) return null
-    const storageRef = ref(storage, path)
-    const snapshot = await uploadBytes(storageRef, file)
-    return await getDownloadURL(snapshot.ref)
-  }
-
-  interface CompressionOptions {
-    maxSizeMB: number
-    maxWidthOrHeight: number
-    useWebWorker: boolean
-  }
-
-  async function handleImageCompression(
-    imageFile: File,
-    compressionOptions: CompressionOptions
-  ): Promise<File | null> {
-
-    // if (
-    //   imageFile.type === "image/heic" || 
-    //   imageFile.name.toLowerCase().endsWith(".heic") ||
-    //   imageFile.type === "image/heif" || 
-    //   imageFile.name.toLowerCase().endsWith(".heif")
-    // ) {
-    //   return imageFile;
-    // }
-
-    try {
-      let fileToCompress: File = imageFile
-
-      // Convert HEIC to JPEG if needed
-      // if (
-      //   imageFile.type === "image/heic" ||
-      //   file.name.toLowerCase().endsWith(".heic") ||
-      //   imageFile.type === "image/heif" ||
-      //   file.name.toLowerCase().endsWith(".heif")
-      // ) {
-      //   const blob = await heic2any({ blob: imageFile, toType: "image/jpeg" })
-      //   fileToCompress = new File(
-      //     [blob as Blob],
-      //     imageFile.name.replace(/\.(heic|HEIC|heif|HEIF)$/, ".jpg"),
-      //     {
-      //       type: "image/jpeg",
-      //     }
-      //   )
-      // }
-
-      // Compress the (converted) image
-      const compressedImage = await imageCompression(
-        fileToCompress,
-        compressionOptions
-      )
-      return compressedImage
-    } catch (error) {
-      console.error("Image processing failed:", error)
-      return null
-    }
-  }
+  const router = useRouter();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setLoading(true)
+    setLoading(true);
 
     if (analytics) {
-      logEvent(analytics, "form_submitted_start", { button_name: "submit" })
+      logEvent(analytics, "form_submitted_start", { button_name: "submit" });
     }
 
-    console.log(values)
     try {
-      const docRef = await addDoc(collection(db, "valentineMessages"), {
+      // Save to Firestore
+      const docRef = await addDoc(collection(db, "christmasCards"), {
         senderName: values.senderName,
         recipientName: values.recipientName,
         message: values.message,
-        caption1: values.caption1 || null,
-        caption2: values.caption2 || null,
+
         selectedStamp: values.selectedStamp,
-        timestamp: new Date(),
-      })
+        selectedCardTemplateId: values.selectedCardTemplateId,
+        selectedCoverTemplateId: values.selectedCoverTemplateId,
 
-      let image1URL = null
-      let image2URL = null
-
-      const compressionOptions = {
-        maxSizeMB: 0.5, // Target max size
-        maxWidthOrHeight: 800, // Max width/height
-        useWebWorker: true, // Improve performance
-      }
-
-      if (values.image1 && values.caption1) {
-        const compressedImage = await handleImageCompression(
-          values.image1,
-          compressionOptions
-        )
-
-        if (compressedImage) {
-          image1URL = await uploadImage(
-            compressedImage,
-            `valentines/${docRef.id}/image1-${Date.now()}`
-          )
-        }
-      }
-
-      if (values.image2 && values.caption2) {
-        const compressedImage = await handleImageCompression(
-          values.image2,
-          compressionOptions
-        )
-
-        if (compressedImage) {
-          image2URL = await uploadImage(
-            compressedImage,
-            `valentines/${docRef.id}/image2-${Date.now()}`
-          )
-        }
-      }
-
-      await updateDoc(docRef, {
-        image1URL,
-        image2URL,
-      })
+        createdAt: new Date(),
+      });
 
       if (analytics) {
-        console.log("form_submitted_successful", { button_name: "submit" })
-        logEvent(analytics, "form_submitted_successful", { button_name: "submit" })
+        logEvent(analytics, "form_submitted_successful", {
+          button_name: "submit",
+        });
       }
 
-      form.reset()
-      setPreview1(null)
-      setPreview2(null)
+      form.reset();
+      setPreviewCardSrc(null);
+      setPreviewCoverSrc(null);
+      setSelectedCardId(null);
+      setSelectedCoverId(null);
+      setSelectedStamp(null);
 
+      // after addDoc succeeds
       router.push(`/success?id=${docRef.id}`)
-    } catch (error) {
-      console.error("Error saving message:", error)
-      alert("Error saving message. Please try again.")
+
+    } catch (error: any) {
+      console.error("Error saving christmas card:", {
+        code: error?.code,
+        message: error?.message,
+        name: error?.name,
+        error,
+      });
+    
+      alert(
+        `Error saving card: ${error?.code ?? "unknown"}\n${error?.message ?? ""}`
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
+    
   }
 
   return (
     <div
-      className={`min-h-svh flex items-center justify-center bg-[#ffeded] ${poppins.className}`}
+      className={`min-h-svh flex items-center justify-center bg-[#253D2C] ${poppins.className}`}
     >
-      <HeartBackground />
-      <ClickHeartEffect />
+      <ChristmasBackground />
+      <ClickSnowEffect />
+
       <Link
         href="/"
-        className="absolute top-5 left-5 z-20 text-[#d98f8f] hover:text-[#b35151] transition-colors"
+        className="absolute top-5 left-5 z-20 text-[#FFFAFA] hover:text-[#922b17] transition-colors"
       >
         <MdHome className="w-[4svh] h-[4svh] md:w-[40px] md:h-[40px]" />
       </Link>
+
       <div className="container mx-auto px-4 max-w-4xl pt-20 md:pt-0 z-10">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex flex-col md:flex-row gap-6">
-              {/* First Container - Names and Message */}
-              <div className="flex-1 bg-[#E5A4A4] rounded-xl p-6 space-y-4">
+              {/* Left - Names/Message + Stamp */}
+              <div className="flex-1 bg-[#761603] rounded-xl p-6 space-y-4">
                 <FormField
                   control={form.control}
                   name="senderName"
@@ -272,7 +177,7 @@ export default function ValentineForm() {
                     <FormItem>
                       <FormControl>
                         <Input
-                          placeholder="Your Name"
+                          placeholder="From: "
                           {...field}
                           className="bg-white rounded-xl"
                         />
@@ -289,7 +194,7 @@ export default function ValentineForm() {
                     <FormItem>
                       <FormControl>
                         <Input
-                          placeholder="Valentine's Name"
+                          placeholder="To: "
                           {...field}
                           className="bg-white rounded-xl"
                         />
@@ -315,6 +220,7 @@ export default function ValentineForm() {
                     </FormItem>
                   )}
                 />
+
                 {/* Stamp Selection */}
                 <div className="space-y-2">
                   <h3
@@ -322,10 +228,11 @@ export default function ValentineForm() {
                   >
                     Select Stamp
                   </h3>
+
                   <FormField
                     control={form.control}
                     name="selectedStamp"
-                    render={({ field }) => (
+                    render={() => (
                       <FormItem>
                         <FormControl>
                           <div className="flex gap-4 justify-center">
@@ -334,16 +241,17 @@ export default function ValentineForm() {
                                 key={stamp.id}
                                 type="button"
                                 onClick={() => {
-                                  setSelectedStamp(stamp.id)
-                                  form.setValue("selectedStamp", stamp.id)
+                                  setSelectedStamp(stamp.id);
+                                  form.setValue("selectedStamp", stamp.id, {
+                                    shouldValidate: true,
+                                  });
                                 }}
-                                // We'll need to add the selectedStamp photo and switch to that instead
                                 className={`
                                   w-24 h-24 rounded-lg p-1 transition-all relative
                                   ${
                                     selectedStamp === stamp.id
                                       ? "bg-white"
-                                      : "bg-[#F8E3E3] hover:drop-shadow-lg"
+                                      : "bg-[#f9f4e3] hover:drop-shadow-lg"
                                   }
                                 `}
                               >
@@ -351,15 +259,14 @@ export default function ValentineForm() {
                                   src={stampFrame}
                                   alt="Stamp Frame"
                                   className={`
-                                      w-full h-full object-contain absolute top-0 left-0 scale-110
-                                      ${
-                                        selectedStamp === stamp.id
-                                          ? "brightness-[90%] saturate-[60%] contrast-[120%] invert-[15%] hue-rotate-[50deg]"
-                                          : ""
-                                      }
-                                    `}
+                                    w-full h-full object-contain absolute top-0 left-0 scale-110
+                                    ${
+                                      selectedStamp === stamp.id
+                                        ? "brightness-[90%] saturate-[60%] contrast-[120%] invert-[15%] hue-rotate-[50deg]"
+                                        : ""
+                                    }
+                                  `}
                                 />
-
                                 <Image
                                   src={stamp.src}
                                   alt={stamp.alt}
@@ -376,301 +283,89 @@ export default function ValentineForm() {
                 </div>
               </div>
 
-              {/* Second Container - Photos and Captions */}
-              <div className="flex-1 bg-[#E5A4A4] rounded-xl p-6">
-                <div className="grid grid-cols-2 gap-4">
+              {/* Right - Card/Cover selection */}
+              <div className="flex-1 bg-[#761603] rounded-xl p-6">
+                <div className="flex flex-col gap-6">
+                  {/* Card */}
                   <FormField
                     control={form.control}
-                    name="image1"
-                    render={({ field: { onChange, ...field } }) => (
-                      <div className="bg-white p-3 pb-0 rounded-lg shadow-md w-full h-full grid grid-rows-[auto_1fr_auto] gap-2"> {/* Polaroid frame */}
-                        <FormItem className="bg-[#D9D9D9] w-full aspect-square rounded-md relative overflow-hidden">
-                          <div className="w-full h-full aspect-square">
+                    name="selectedCardTemplateId"
+                    render={() => (
+                      <div className="bg-white p-4 rounded-lg shadow-md w-full">
+                        <FormItem className="bg-[#D9D9D9] w-full aspect-video rounded-md relative overflow-hidden">
+                          <div className="w-full h-full relative">
                             <Image
                               src={placeholder}
-                              alt="Upload Background"
+                              alt="Card Background"
                               fill
                               className="object-cover"
                             />
-                            <FormControl>
-                              <div className="text-center w-full h-full relative z-10">
-                                <Input
-                                  type="file"
-                                  accept="image/jpeg,image/png,image/jpg"
-                                  onChange={async (e) => {
-                                    const file = e.target.files?.[0] || null
-                                    if (!file) return
 
-                                    let previewUrl = null
-
-                                    // Check file type
-                                    const validTypes = ['image/jpeg', 'image/png', 'image/jpg']
-                                    if (!validTypes.includes(file.type)) {
-                                      form.setError('image1', {
-                                        type: 'manual',
-                                        message: 'File type not supported. Please upload PNG or JPG only.'
-                                      })
-                                      e.target.value = '' // Reset input
-                                      return
-                                    }
-
-                                    // Clear error if file type is valid
-                                    form.clearErrors('image1')
-
-                                    if (
-                                      file.type === "image/heic" ||
-                                      file.name.toLowerCase().endsWith(".heic") ||
-                                      file.type === "image/heif" ||
-                                      file.name.toLowerCase().endsWith(".heif")
-                                    ) {
-                                      try {
-                                        // Convert HEIC to JPEG
-                                        const blob = await heic2any({
-                                          blob: file,
-                                          toType: "image/jpeg",
-                                        })
-                                        const convertedFile = new File(
-                                          [blob as Blob],
-                                          file.name.replace(/\.(heic|HEIC|heif|HEIF)$/, ".jpg"),
-                                          {
-                                            type: "image/jpeg",
-                                          }
-                                        )
-
-                                        previewUrl =
-                                          URL.createObjectURL(convertedFile)
-                                        // onChange(file) // Pass the converted file instead of original
-                                        // setPreview1(previewUrl) // or setPreview2 for second image
-                                      } catch (error) {
-                                        console.error(
-                                          "HEIC conversion failed:",
-                                          error
-                                        )
-                                      }
-                                    } else {
-                                      previewUrl = URL.createObjectURL(file)
-                                    }
-
-                                    onChange(file)
-                                    setPreview1(previewUrl)
-                                  }}
-                                  className="hidden"
-                                  id="image1"
+                            <button
+                              type="button"
+                              onClick={() => setIsCardModalOpen(true)}
+                              className="absolute inset-0 z-10 flex items-center justify-center"
+                            >
+                              {previewCardSrc ? (
+                                <img
+                                  src={previewCardSrc}
+                                  alt="Selected card"
+                                  className="h-full w-full object-cover"
                                 />
-                                <label
-                                  htmlFor="image1"
-                                  className="cursor-pointer w-full h-full flex items-center justify-center"
-                                >
-                                  {preview1 ? (
-                                    <div className="relative w-full h-full">
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.preventDefault()
-                                          setPreview1(null)
-                                          onChange(null)
-                                        }}
-                                        className="absolute top-0 right-1 bg-[#c7564a] text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-[#cc0000] transition-colors z-20"
-                                      >
-                                        ×
-                                      </button>
-                                      <img
-                                        src={preview1}
-                                        alt="Preview 1"
-                                        className="w-full h-full object-cover rounded-lg"
-                                      />
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center justify-center h-40 text-gray-500">
-                                      {/* Photo 1 <br/> Upload */}
-                                    </div>
-                                  )}
-                                </label>
-                              </div>
-                            </FormControl>
+                              ) : null}
+                            </button>
                           </div>
                           <FormMessage />
                         </FormItem>
-                        <div className="flex items-center justify-center">
+
+                        <div className="mt-3 flex items-center justify-center">
                           <span className="text-gray-400 text-sm text-center">
-                            Photo 1 <br className="md:hidden"/> Upload
+                            {previewCardSrc
+                              ? "Click to change!!"
+                              : "Choose Card Template"}
                           </span>
                         </div>
                       </div>
                     )}
                   />
 
+                  {/* Cover */}
                   <FormField
                     control={form.control}
-                    name="caption1"
-                    render={({ field }) => (
-                      <FormItem className="rounded-xl overflow-hidden flex flex-col h-full space-y-0">
-                        <div className="bg-[#edd9d9] flex justify-center items-center h-[100px] rounded-t-xl">
-                          <Image
-                            src={mofuFlower}
-                            alt="Mofu Flower"
-                            width={130}
-                            height={130}
-                            className="object-contain mt-4"
-                          />
-                        </div>
-                        <div className="bg-white p-4 border-8 border-[#fff4f4] rounded-b-xl flex-1">
-                          <FormControl>
-                            <Textarea
-                              placeholder="Photo 1 Caption"
-                              {...field}
-                              className="bg-transparent border-none text-sm md:text-sm min-h-[4rem] max-h-[4rem] overflow-y-auto resize-none p-0"
-                            />
-                          </FormControl>
-                        </div>
-                        <FormMessage className="mt-2" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="caption2"
-                    render={({ field }) => (
-                      <FormItem className="rounded-xl overflow-hidden flex flex-col space-y-0">
-                        <div className="bg-[#edd9d9] flex justify-center items-center h-[100px] rounded-t-xl">
-                          <Image
-                            src={mofuHeart}
-                            alt="Mofu Heart"
-                            width={130}
-                            height={130}
-                            className="object-cover mt-4"
-                          />
-                        </div>
-                        <div className="bg-white p-4 border-8 border-[#fff4f4] rounded-b-xl flex-1">
-                          <FormControl>
-                            <Textarea
-                              placeholder="Photo 2 Caption"
-                              {...field}
-                              className="bg-transparent border-none text-sm min-h-[4rem] max-h-[4rem] overflow-y-auto resize-none p-0"
-                            />
-                          </FormControl>
-                        </div>
-                        <FormMessage className="mt-2" />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="image2"
-                    render={({ field: { onChange, ...field } }) => (
-                      <div className="bg-white p-3 pb-0 rounded-lg shadow-md w-full h-full grid grid-rows-[auto_1fr_auto] gap-2">
-                        <FormItem className="bg-[#D9D9D9] w-full aspect-square rounded-md relative overflow-hidden">
-                          <div className="w-full h-full aspect-square">
+                    name="selectedCoverTemplateId"
+                    render={() => (
+                      <div className="bg-white p-4 rounded-lg shadow-md w-full">
+                        <FormItem className="bg-[#D9D9D9] w-full aspect-video rounded-md relative overflow-hidden">
+                          <div className="w-full h-full relative">
                             <Image
                               src={placeholder}
-                              alt="Upload Background"
+                              alt="Envelope Background"
                               fill
                               className="object-cover"
                             />
-                            <FormControl>
-                              <div className="text-center w-full h-full relative z-10">
-                                <Input
-                                  type="file"
-                                  accept="image/jpeg,image/png,image/jpg"
-                                  onChange={async (e) => {
-                                    const file = e.target.files?.[0] || null
-                                    if (!file) return
 
-                                    let previewUrl = null
-
-                                    // Check file type
-                                    const validTypes = ['image/jpeg', 'image/png', 'image/jpg']
-                                    if (!validTypes.includes(file.type)) {
-                                      form.setError('image2', {
-                                        type: 'manual',
-                                        message: 'File type not supported. Please upload PNG or JPG only.'
-                                      })
-                                      e.target.value = '' // Reset input
-                                      return
-                                    }
-
-                                    // Clear error if file type is valid
-                                    form.clearErrors('image2')
-
-                                    if (
-                                      file.type === "image/heic" ||
-                                      file.name.toLowerCase().endsWith(".heic") ||
-                                      file.type === "image/heif" ||
-                                      file.name.toLowerCase().endsWith(".heif")
-                                    ) {
-                                      try {
-                                        // Convert HEIC to JPEG
-                                        const blob = await heic2any({
-                                          blob: file,
-                                          toType: "image/jpeg",
-                                        })
-                                        const convertedFile = new File(
-                                          [blob as Blob],
-                                          file.name.replace(/\.(heic|HEIC|heif|HEIF)$/, ".jpg"),
-                                          {
-                                            type: "image/jpeg",
-                                          }
-                                        )
-
-                                        previewUrl =
-                                          URL.createObjectURL(convertedFile)
-                                        // onChange(convertedFile);
-                                        // setPreview2(previewUrl);
-                                      } catch (error) {
-                                        console.error(
-                                          "HEIC conversion failed:",
-                                          error
-                                        )
-                                      }
-                                    } else {
-                                      previewUrl = URL.createObjectURL(file)
-                                    }
-
-                                    onChange(file)
-                                    setPreview2(previewUrl)
-                                  }}
-                                  className="hidden"
-                                  id="image2"
+                            <button
+                              type="button"
+                              onClick={() => setIsCoverModalOpen(true)}
+                              className="absolute inset-0 z-10 flex items-center justify-center"
+                            >
+                              {previewCoverSrc ? (
+                                <img
+                                  src={previewCoverSrc}
+                                  alt="Selected cover"
+                                  className="h-full w-full object-cover"
                                 />
-                                <label
-                                  htmlFor="image2"
-                                  className="cursor-pointer w-full h-full flex items-center justify-center"
-                                >
-                                  {preview2 ? (
-                                    <div className="relative w-full h-full aspect-square">
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.preventDefault()
-                                          setPreview2(null)
-                                          onChange(null)
-                                        }}
-                                        className="absolute top-1 right-1 bg-[#c7564a] text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-[#cc0000] transition-colors z-20"
-                                      >
-                                        ×
-                                      </button>
-                                      <img
-                                        src={preview2}
-                                        alt="Preview 2"
-                                        className="w-full h-full object-cover rounded-lg"
-                                      />
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center justify-center h-40 text-gray-500">
-                                      {/* Photo 2 <br/> Upload */}
-                                    </div>
-                                  )}
-                                </label>
-                              </div>
-                            </FormControl>
+                              ) : null}
+                            </button>
                           </div>
                           <FormMessage />
                         </FormItem>
-                        <div className="flex items-center justify-center">
+
+                        <div className="mt-3 flex items-center justify-center">
                           <span className="text-gray-400 text-sm text-center">
-                            Photo 2 <br className="md:hidden"/> Upload
+                            {previewCoverSrc
+                              ? "Click to change!!"
+                              : "Choose Envelope Cover"}
                           </span>
                         </div>
                       </div>
@@ -680,18 +375,52 @@ export default function ValentineForm() {
               </div>
             </div>
 
+            {/* Submit */}
             <div className="flex justify-center pb-6 md:pb-0">
               <Button
                 type="submit"
-                className={`bg-[#E5A4A4] hover:bg-[#d98f8f] text-white text-xl px-8 py-2 rounded-3xl h-[60px]  ${fredoka.className}`}
+                className={`bg-[#761603] hover:bg-[#922b17] text-white text-xl px-8 py-2 rounded-3xl h-[60px] ${fredoka.className}`}
                 disabled={loading}
               >
-                {loading ? "Submitting..." : "Generate Website"}
+                {loading ? "Submitting..." : "Generate Card"}
               </Button>
             </div>
           </form>
         </Form>
       </div>
+
+      {/* Modals */}
+      <CardSelectionModal
+        isOpen={isCardModalOpen}
+        onClose={() => setIsCardModalOpen(false)}
+        selectedId={selectedCardId}
+        onSelect={(template: CardTemplate) => {
+          setSelectedCardId(template.id)
+        
+          // preview still uses src
+          const src = typeof template.src === "string" ? template.src : template.src.src
+          setPreviewCardSrc(src)
+        
+          // BUT store the ID in the form (not src)
+          form.setValue("selectedCardTemplateId", template.id, { shouldValidate: true })
+        }}
+        
+      />
+
+      <CoverSelectionModal
+        isOpen={isCoverModalOpen}
+        onClose={() => setIsCoverModalOpen(false)}
+        selectedId={selectedCoverId}
+        onSelect={(template: CoverTemplate) => {
+          setSelectedCoverId(template.id)
+        
+          const src = typeof template.src === "string" ? template.src : template.src.src
+          setPreviewCoverSrc(src)
+        
+          form.setValue("selectedCoverTemplateId", template.id, { shouldValidate: true })
+        }}
+        
+      />
     </div>
-  )
+  );
 }

@@ -1,34 +1,26 @@
-// lib/firebase.js
-
-import { initializeApp } from 'firebase/app';
-import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { initializeApp, getApp, getApps } from "firebase/app"
+import { getAnalytics, isSupported, type Analytics } from "firebase/analytics"
+import { getFirestore } from "firebase/firestore"
+import { getStorage } from "firebase/storage"
 
 const firebaseConfig = {
-    apiKey: "AIzaSyC-i5LEh9oRNKx9pwIqP_Je1GZYniYm5kQ",
-    authDomain: "bemyvalentine-779d1.firebaseapp.com",
-    projectId: "bemyvalentine-779d1",
-    storageBucket: "bemyvalentine-779d1.firebasestorage.app",
-    messagingSenderId: "55959568304",
-    appId: "1:55959568304:web:6f8f3c12e6eb061096e075",
-    measurementId: "G-SX7KKZYE0G"
+  apiKey: "AIzaSyCv_tc3wq4kBzH_YR_ik0d4mVnuKml9h2Q",
+  authDomain: "christmas-card-cceed.firebaseapp.com",
+  projectId: "christmas-card-cceed",
+  storageBucket: "christmas-card-cceed.firebasestorage.app",
+  messagingSenderId: "659833551784",
+  appId: "1:659833551784:web:77597a3bfc35d047147b9d",
+  measurementId: "G-RR464KG0G6"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const storage = getStorage(app);
+export const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
+export const db = getFirestore(app)
+export const storage = getStorage(app)
 
-// Explicitly type `analytics` as Analytics (or undefined if not supported yet)
-let analytics: Analytics | undefined = undefined;
+export let analytics: Analytics | undefined = undefined
 
-// 🔥 Prevents errors in SSR by ensuring Analytics only runs in the browser
 if (typeof window !== "undefined") {
   isSupported().then((supported) => {
-    if (supported) {
-      analytics = getAnalytics(app);
-    }
-  });
+    if (supported) analytics = getAnalytics(app)
+  })
 }
-
-export { app, analytics, db, storage };
